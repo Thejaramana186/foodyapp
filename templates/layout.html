@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FoodieHub - Food Delivery{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="{{ url_for('index') }}" class="text-2xl font-bold text-orange-600">
+                        <i class="fas fa-utensils mr-2 text-orange-500"></i>
+                        <span class="bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-pink-500 to-gray-700">FoodieHub</span>
+                    </a>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="{{ url_for('index') }}" class="text-gray-700 hover:text-orange-500 font-medium transition duration-200">Home</a>
+                    <a href="{{ url_for('restaurant.restaurants') }}" class="text-gray-700 hover:text-orange-500 font-medium transition duration-200">Restaurants</a>
+                    {% if session.user_id %}
+                        <a href="{{ url_for('cart.cart') }}" class="text-gray-700 hover:text-orange-500 font-medium transition duration-200 relative">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="ml-1">Cart</span>
+                            <span id="cart-count" class="absolute -top-2 -right-2 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                        </a>
+                        <a href="{{ url_for('order_history.order_history') }}" class="text-gray-700 hover:text-orange-500 font-medium transition duration-200">Orders</a>
+                        <div class="relative">
+                            <button id="user-menu-button" class="text-gray-700 hover:text-orange-500 font-medium transition duration-200 flex items-center">
+                                <i class="fas fa-user"></i>
+                                <span class="ml-1">{{ session.username }}</span>
+                                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                            </button>
+                            <div id="user-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible transform scale-95 transition-all duration-200 z-50">
+                                <div class="px-4 py-2 border-b border-gray-100">
+                                    <p class="text-sm font-medium text-gray-900">{{ session.username }}</p>
+                                    <p class="text-xs text-gray-500">Signed in</p>
+                                </div>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user mr-2"></i>Profile
+                                </a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-cog mr-2"></i>Settings
+                                </a>
+                                <a href="{{ url_for('logout.logout') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('login.login') }}" class="text-gray-700 hover:text-orange-500 font-medium transition duration-200">Login</a>
+                        <a href="{{ url_for('register.register') }}" class="bg-gradient-to-r from-orange-500 to-pink-500 text-gray-700 px-6 py-2 rounded-full font-semibold hover:from-orange-600 hover:to-pink-600 transition duration-200 shadow-lg">Register</a>
+                    {% endif %}
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-700 hover:text-orange-500">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="md:hidden hidden">
+                <div class="px-2 pt-2 pb-3 space-y-1">
+                    <a href="{{ url_for('index') }}" class="block px-3 py-2 text-gray-700 hover:text-orange-500">Home</a>
+                    <a href="{{ url_for('restaurant.restaurants') }}" class="block px-3 py-2 text-gray-700 hover:text-orange-500">Restaurants</a>
+                    {% if session.user_id %}
+                        <a href="{{ url_for('cart.cart') }}" class="block px-3 py-2 text-gray-700 hover:text-orange-500">Cart</a>
+                        <a href="{{ url_for('order_history.order_history') }}" class="block px-3 py-2 text-gray-700 hover:text-orange-500">Orders</a>
+                        <div class="border-t border-gray-200 pt-2 mt-2">
+                            <div class="px-3 py-2">
+                                <p class="text-sm font-medium text-gray-900">{{ session.username }}</p>
+                                <p class="text-xs text-gray-500">Signed in</p>
+                            </div>
+                            <a href="#" class="block px-3 py-2 text-gray-700 hover:text-orange-500">Profile</a>
+                            <a href="#" class="block px-3 py-2 text-gray-700 hover:text-orange-500">Settings</a>
+                            <a href="{{ url_for('logout.logout') }}" class="block px-3 py-2 text-gray-700 hover:text-orange-500">Logout</a>
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('login.login') }}" class="block px-3 py-2 text-gray-700 hover:text-orange-500">Login</a>
+                        <a href="{{ url_for('register.register') }}" class="block px-3 py-2 text-gray-700 hover:text-orange-500">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="fixed top-20 right-4 z-50 space-y-2">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} bg-{{ 'green' if category == 'success' else 'red' }}-500 text-white px-4 py-2 rounded-lg shadow-lg">
+                        {{ message }}
+                        <button onclick="this.parentElement.remove()" class="ml-2 text-white hover:text-gray-200">×</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">FoodieHub</h3>
+                    <p class="text-gray-400">Your favorite food delivery service, bringing delicious meals to your doorstep.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ url_for('index') }}" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="{{ url_for('restaurant.restaurants') }}" class="text-gray-400 hover:text-white">Restaurants</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">About Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Help Center</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Follow Us</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                <p class="text-gray-400">&copy; 2024 FoodieHub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+        
+        // User menu dropdown toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userMenu = document.getElementById('user-menu');
+            
+            if (userMenuButton && userMenu) {
+                userMenuButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const isVisible = !userMenu.classList.contains('opacity-0');
+                    
+                    if (isVisible) {
+                        // Hide menu
+                        userMenu.classList.add('opacity-0', 'invisible', 'scale-95');
+                        userMenu.classList.remove('opacity-100', 'visible', 'scale-100');
+                    } else {
+                        // Show menu
+                        userMenu.classList.remove('opacity-0', 'invisible', 'scale-95');
+                        userMenu.classList.add('opacity-100', 'visible', 'scale-100');
+                    }
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!userMenuButton.contains(e.target) && !userMenu.contains(e.target)) {
+                        userMenu.classList.add('opacity-0', 'invisible', 'scale-95');
+                        userMenu.classList.remove('opacity-100', 'visible', 'scale-100');
+                    }
+                });
+                
+                // Close menu on escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        userMenu.classList.add('opacity-0', 'invisible', 'scale-95');
+                        userMenu.classList.remove('opacity-100', 'visible', 'scale-100');
+                    }
+                });
+            }
+        });
+
+        // Auto-hide flash messages
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+{% extends "layout.html" %}
+
+{% block title %}Restaurants - FoodieHub{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="bg-gradient-to-r from-orange-500 to-red-500 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-4xl font-bold text-blue-400 text-center mb-8">Discover Amazing Restaurants</h1>
+        
+        <!-- Search and Filters -->
+        <div class="bg-white rounded-2xl p-6 shadow-lg">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Search -->
+                <div class="relative">
+                    <input type="text" name="search" value="{{ search }}" 
+                           placeholder="Search restaurants or cuisines..."
+                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+                
+                <!-- Cuisine Filter -->
+                <select name="cuisine" class="py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    <option value="">All Cuisines</option>
+                    {% for cuisine in cuisines %}
+                    <option value="{{ cuisine }}" {% if cuisine == selected_cuisine %}selected{% endif %}>{{ cuisine }}</option>
+                    {% endfor %}
+                </select>
+                
+                <!-- Type Filter -->
+                <select name="type" class="py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    <option value="">All Types</option>
+                    <option value="veg" {% if selected_type == 'veg' %}selected{% endif %}>Vegetarian</option>
+                    <option value="non-veg" {% if selected_type == 'non-veg' %}selected{% endif %}>Non-Vegetarian</option>
+                </select>
+                
+                <!-- Search Button -->
+                <button type="submit" 
+                        class="bg-orange-500 text-white py-3 px-6 rounded-lg hover:bg-orange-600 transition duration-200 font-semibold">
+                    <i class="fas fa-search mr-2"></i>Search
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Results Section -->
+<section class="py-12 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Results Info -->
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-2xl font-bold text-gray-900">
+                {% if search or selected_cuisine or selected_type %}
+                    Search Results ({{ restaurants.total }} found)
+                {% else %}
+                    All Restaurants ({{ restaurants.total }} available)
+                {% endif %}
+            </h2>
+            
+            <!-- Sort Options -->
+            <div class="flex items-center space-x-4">
+                <span class="text-gray-600">Sort by:</span>
+                <select class="py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                    <option>Rating (High to Low)</option>
+                    <option>Delivery Time</option>
+                    <option>Popularity</option>
+                </select>
+            </div>
+        </div>
+        
+        {% if restaurants.items %}
+        <!-- Restaurant Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {% for restaurant in restaurants.items %}
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transform hover:scale-105 transition duration-300">
+                <div class="relative">
+                    <img src="{{ restaurant.image }}" alt="{{ restaurant.name }}" 
+                         class="w-full h-48 object-cover">
+                    
+                    <!-- Rating Badge -->
+                    <div class="absolute top-4 left-4 bg-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
+                        <i class="fas fa-star text-yellow-400 mr-1"></i>{{ restaurant.rating }}
+                    </div>
+                    
+                    <!-- Type Indicator -->
+                    <div class="absolute top-4 right-4">
+                        {% if restaurant.type == 'veg' %}
+                            <div class="w-8 h-8 bg-green-500 rounded-lg border-2 border-white flex items-center justify-center shadow-lg">
+                                <div class="w-3 h-3 bg-white rounded-full"></div>
+                            </div>
+                        {% elif restaurant.type == 'non-veg' %}
+                            <div class="w-8 h-8 bg-red-500 rounded-lg border-2 border-white flex items-center justify-center shadow-lg">
+                                <div class="w-3 h-3 bg-white rounded-full"></div>
+                            </div>
+                        {% else %}
+                            <div class="flex space-x-1">
+                                <div class="w-4 h-4 bg-green-500 rounded border-2 border-white"></div>
+                                <div class="w-4 h-4 bg-red-500 rounded border-2 border-white"></div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Quick Add Overlay -->
+                    <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition duration-300 flex items-center justify-center">
+                        <a href="{{ url_for('menu.menu', restaurant_id=restaurant.id) }}" 
+                           class="bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition duration-200 transform hover:scale-105">
+                            View Menu
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-2 truncate">{{ restaurant.name }}</h3>
+                    <p class="text-gray-600 mb-3">{{ restaurant.cuisine }}</p>
+                    
+                    <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+                        <span class="flex items-center">
+                            <i class="fas fa-clock mr-1"></i>{{ restaurant.delivery_time }}
+                        </span>
+                        <span class="flex items-center">
+                            <i class="fas fa-motorcycle mr-1"></i>Free Delivery
+                        </span>
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <a href="{{ url_for('menu.menu', restaurant_id=restaurant.id) }}" 
+                           class="flex-1 bg-orange-500 text-white py-2 px-4 rounded-lg text-center font-semibold hover:bg-orange-600 transition duration-200">
+                            Order Now
+                        </a>
+                        <button class="px-3 py-2 border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:text-orange-500 transition duration-200">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if restaurants.pages > 1 %}
+        <div class="flex justify-center items-center space-x-2 mt-12">
+            {% if restaurants.has_prev %}
+                <a href="{{ url_for('restaurant.restaurants', page=restaurants.prev_num, search=search, cuisine=selected_cuisine, type=selected_type) }}" 
+                   class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            {% endif %}
+            
+            {% for page in restaurants.iter_pages() %}
+                {% if page %}
+                    {% if page != restaurants.page %}
+                        <a href="{{ url_for('restaurant.restaurants', page=page, search=search, cuisine=selected_cuisine, type=selected_type) }}" 
+                           class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200">
+                            {{ page }}
+                        </a>
+                    {% else %}
+                        <span class="px-4 py-2 bg-orange-500 text-white rounded-lg">{{ page }}</span>
+                    {% endif %}
+                {% else %}
+                    <span class="px-4 py-2">...</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if restaurants.has_next %}
+                <a href="{{ url_for('restaurant.restaurants', page=restaurants.next_num, search=search, cuisine=selected_cuisine, type=selected_type) }}" 
+                   class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- No Results -->
+        <div class="text-center py-16">
+            <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-search text-gray-400 text-3xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">No restaurants found</h3>
+            <p class="text-gray-600 mb-8">Try adjusting your search criteria or browse all restaurants</p>
+            <a href="{{ url_for('restaurant.restaurants') }}" 
+               class="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition duration-200">
+                View All Restaurants
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Popular Cuisines -->
+<section class="py-12 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl font-bold text-gray-900 text-center mb-8">Popular Cuisines</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {% for cuisine in cuisines %}
+            <a href="{{ url_for('restaurant.restaurants', cuisine=cuisine) }}" 
+               class="group bg-blue-200 rounded-xl p-4 text-center hover:bg-orange-50 hover:shadow-lg transition duration-300">
+                <div class="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center">
+                    {% if cuisine == 'North Indian' or cuisine == 'South Indian' %}
+                        <span class="text-4xl">🍛</span>
+                    {% elif cuisine == 'Italian' %}
+                        <span class="text-4xl">🍝</span>
+                    {% elif cuisine == 'American' %}
+                        <span class="text-4xl">🍔</span>
+                    {% elif cuisine == 'Mexican' %}
+                        <span class="text-4xl">🌮</span>
+                    {% elif cuisine == 'Chinese' %}
+                        <span class="text-4xl">🥡</span>
+                    {% else %}
+                        <span class="text-4xl">🍽️</span>
+                    {% endif %}
+                </div>
+                <h3 class="font-medium text-gray-900 group-hover:text-orange-600 transition duration-200 text-sm">{{ cuisine }}</h3>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

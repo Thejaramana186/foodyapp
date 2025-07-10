@@ -1,0 +1,314 @@
+{% extends "layout.html" %}
+
+{% block title %}Register - FoodieHub{% endblock %}
+
+{% block content %}
+<section class="min-h-screen bg-gradient-to-br from-orange-400 via-red-500 to-pink-500 py-12">
+    <div class="absolute inset-0 bg-black opacity-20"></div>
+    
+    <div class="relative w-full max-w-2xl mx-auto px-4">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-orange-500 to-red-500 p-8 text-center">
+                <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-user-plus text-orange-500 text-2xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-white mb-2">Join FoodieHub!</h1>
+                <p class="text-orange-100">Create your account and start ordering delicious food</p>
+            </div>
+            
+            <!-- Form -->
+            <div class="p-8">
+                <form method="POST" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Username -->
+                        <div>
+                            <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-user mr-2 text-orange-500"></i>Username *
+                            </label>
+                            <input type="text" id="username" name="username" required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition duration-200"
+                                   placeholder="Choose a username">
+                            <p class="text-xs text-gray-500 mt-1">Must be at least 3 characters</p>
+                        </div>
+                        
+                        <!-- Email -->
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-envelope mr-2 text-orange-500"></i>Email Address *
+                            </label>
+                            <input type="email" id="email" name="email" required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition duration-200"
+                                   placeholder="your@email.com">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Password -->
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-lock mr-2 text-orange-500"></i>Password *
+                            </label>
+                            <div class="relative">
+                                <input type="password" id="password" name="password" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition duration-200"
+                                       placeholder="Create a password">
+                                <button type="button" onclick="togglePassword('password')" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                    <i id="password-icon" class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div id="password-strength" class="mt-1 text-xs"></div>
+                        </div>
+                        
+                        <!-- Confirm Password -->
+                        <div>
+                            <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-lock mr-2 text-orange-500"></i>Confirm Password *
+                            </label>
+                            <div class="relative">
+                                <input type="password" id="confirm_password" name="confirm_password" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition duration-200"
+                                       placeholder="Confirm your password">
+                                <button type="button" onclick="togglePassword('confirm_password')" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                    <i id="confirm-password-icon" class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div id="password-match" class="mt-1 text-xs"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Phone -->
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-phone mr-2 text-orange-500"></i>Phone Number
+                            </label>
+                            <input type="tel" id="phone" name="phone"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition duration-200"
+                                   placeholder="Your phone number">
+                        </div>
+                        
+                        <!-- City -->
+                        <div>
+                            <label for="city" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-map-marker-alt mr-2 text-orange-500"></i>City
+                            </label>
+                            <select id="city" name="city" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition duration-200">
+                                <option value="">Select your city</option>
+                                <option value="mumbai">Mumbai</option>
+                                <option value="delhi">Delhi</option>
+                                <option value="bangalore">Bangalore</option>
+                                <option value="hyderabad">Hyderabad</option>
+                                <option value="pune">Pune</option>
+                                <option value="kolkata">Kolkata</option>
+                                <option value="chennai">Chennai</option>
+                                <option value="ahmedabad">Ahmedabad</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Address -->
+                    <div>
+                        <label for="address" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-home mr-2 text-orange-500"></i>Full Address
+                        </label>
+                        <textarea id="address" name="address" rows="3"
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition duration-200"
+                                  placeholder="Enter your complete address for delivery"></textarea>
+                    </div>
+                    
+                    <!-- Terms and Privacy -->
+                    <div class="space-y-4">
+                        <label class="flex items-start">
+                            <input type="checkbox" id="terms" required class="mt-1 rounded text-orange-500 focus:ring-orange-500">
+                            <span class="ml-3 text-sm text-gray-600">
+                                I agree to the <a href="#" class="text-orange-600 hover:text-orange-500">Terms of Service</a> 
+                                and <a href="#" class="text-orange-600 hover:text-orange-500">Privacy Policy</a>
+                            </span>
+                        </label>
+                        
+                        <label class="flex items-start">
+                            <input type="checkbox" id="newsletter" class="mt-1 rounded text-orange-500 focus:ring-orange-500">
+                            <span class="ml-3 text-sm text-gray-600">
+                                I want to receive updates about new restaurants and special offers
+                            </span>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-orange-500 to-red-500 text-yellow-500 py-4 rounded-lg font-semibold text-lg hover:from-orange-600 hover:to-red-600 transform hover:scale-105 transition duration-300 shadow-lg">
+                        <i class="fas fa-user-plus mr-2"></i>Create Account
+                    </button>
+                </form>
+                
+                <!-- Social Register -->
+                <div class="mt-6">
+                    <div class="relative">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-300"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-2 bg-white text-gray-500">Or register with</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 grid grid-cols-2 gap-3">
+                        <button class="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition duration-200">
+                            <i class="fab fa-google text-red-500"></i>
+                            <span class="ml-2">Google</span>
+                        </button>
+                        <button class="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition duration-200">
+                            <i class="fab fa-facebook text-blue-500"></i>
+                            <span class="ml-2">Facebook</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Login Link -->
+                <div class="mt-8 text-center">
+                    <p class="text-gray-600">
+                        Already have an account? 
+                        <a href="{{ url_for('login.login') }}" class="text-orange-600 hover:text-orange-500 font-semibold">Sign in here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+function togglePassword(inputId) {
+    const passwordInput = document.getElementById(inputId);
+    const iconId = inputId === 'password' ? 'password-icon' : 'confirm-password-icon';
+    const passwordIcon = document.getElementById(iconId);
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        passwordIcon.classList.remove('fa-eye');
+        passwordIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        passwordIcon.classList.remove('fa-eye-slash');
+        passwordIcon.classList.add('fa-eye');
+    }
+}
+
+// Password strength checker
+document.getElementById('password').addEventListener('input', function() {
+    const password = this.value;
+    const strengthDiv = document.getElementById('password-strength');
+    
+    let strength = 0;
+    let feedback = [];
+    
+    if (password.length >= 8) strength++;
+    else feedback.push('At least 8 characters');
+    
+    if (/[a-z]/.test(password)) strength++;
+    else feedback.push('One lowercase letter');
+    
+    if (/[A-Z]/.test(password)) strength++;
+    else feedback.push('One uppercase letter');
+    
+    if (/[0-9]/.test(password)) strength++;
+    else feedback.push('One number');
+    
+    if (/[^a-zA-Z0-9]/.test(password)) strength++;
+    else feedback.push('One special character');
+    
+    const colors = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-blue-500', 'text-green-500'];
+    const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+    
+    if (password.length > 0) {
+        strengthDiv.className = `mt-1 text-xs ${colors[strength - 1] || 'text-red-500'}`;
+        strengthDiv.textContent = `Strength: ${labels[strength - 1] || 'Very Weak'}`;
+        if (feedback.length > 0 && strength < 3) {
+            strengthDiv.textContent += ` (Need: ${feedback.join(', ')})`;
+        }
+    } else {
+        strengthDiv.textContent = '';
+    }
+});
+
+// Password confirmation checker
+document.getElementById('confirm_password').addEventListener('input', function() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = this.value;
+    const matchDiv = document.getElementById('password-match');
+    
+    if (confirmPassword.length > 0) {
+        if (password === confirmPassword) {
+            matchDiv.className = 'mt-1 text-xs text-green-500';
+            matchDiv.textContent = '✓ Passwords match';
+        } else {
+            matchDiv.className = 'mt-1 text-xs text-red-500';
+            matchDiv.textContent = '✗ Passwords do not match';
+        }
+    } else {
+        matchDiv.textContent = '';
+    }
+});
+
+// Phone number formatting
+document.getElementById('phone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 10) {
+        value = value.substring(0, 10);
+    }
+    e.target.value = value;
+});
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    const terms = document.getElementById('terms').checked;
+    
+    // Basic validation
+    if (!username || !email || !password || !confirmPassword) {
+        e.preventDefault();
+        alert('Please fill in all required fields');
+        return;
+    }
+    
+    if (username.length < 3) {
+        e.preventDefault();
+        alert('Username must be at least 3 characters long');
+        return;
+    }
+    
+    if (password.length < 6) {
+        e.preventDefault();
+        alert('Password must be at least 6 characters long');
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('Passwords do not match');
+        return;
+    }
+    
+    if (!terms) {
+        e.preventDefault();
+        alert('Please accept the Terms of Service and Privacy Policy');
+        return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        e.preventDefault();
+        alert('Please enter a valid email address');
+        return;
+    }
+});
+
+// Auto-focus first input
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('username').focus();
+});
+</script>
+{% endblock %}

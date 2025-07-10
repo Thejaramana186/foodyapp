@@ -1,0 +1,302 @@
+{% extends "layout.html" %}
+
+{% block title %}Order History - FoodieHub{% endblock %}
+
+{% block content %}
+<section class="py-12 bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Order History</h1>
+            <p class="text-xl text-gray-600">Track your past orders and reorder your favorites</p>
+        </div>
+        
+        {% if orders.items %}
+        <!-- Order Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-shopping-bag text-blue-600 text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">{{ orders.total }}</h3>
+                <p class="text-gray-600">Total Orders</p>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">
+                    {{ orders.items | selectattr('status', 'equalto', 'delivered') | list | length }}
+                </h3>
+                <p class="text-gray-600">Delivered</p>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center">
+                <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-clock text-orange-600 text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">
+                    {{ orders.items | selectattr('status', 'in', ['pending', 'confirmed', 'preparing']) | list | length }}
+                </h3>
+                <p class="text-gray-600">In Progress</p>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-rupee-sign text-purple-600 text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">
+                    ₹{{ "%.0f"|format(orders.items | sum(attribute='total_amount')) }}
+                </h3>
+                <p class="text-gray-600">Total Spent</p>
+            </div>
+        </div>
+        
+        <!-- Orders List -->
+        <div class="space-y-6">
+            {% for order in orders.items %}
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300">
+                <div class="p-6">
+                    <!-- Order Header -->
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-utensils text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900">{{ order.restaurant.name }}</h3>
+                                <p class="text-gray-600">Order #{{ order.id }}</p>
+                                <p class="text-sm text-gray-500">
+                                    <i class="fas fa-calendar mr-1"></i>
+                                    {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-right">
+                            <div class="mb-2">
+                                {% if order.status == 'pending' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                        <i class="fas fa-clock mr-1"></i>Pending
+                                    </span>
+                                {% elif order.status == 'confirmed' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                        <i class="fas fa-check mr-1"></i>Confirmed
+                                    </span>
+                                {% elif order.status == 'preparing' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                                        <i class="fas fa-fire mr-1"></i>Preparing
+                                    </span>
+                                {% elif order.status == 'delivered' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-check-circle mr-1"></i>Delivered
+                                    </span>
+                                {% elif order.status == 'cancelled' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                        <i class="fas fa-times-circle mr-1"></i>Cancelled
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <p class="text-2xl font-bold text-gray-900">₹{{ "%.2f"|format(order.total_amount) }}</p>
+                            <p class="text-sm text-gray-500">{{ order.order_items|length }} item(s)</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Order Items Preview -->
+                    <div class="border-t border-gray-200 pt-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                            {% for item in order.order_items[:3] %}
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                <div class="flex-shrink-0">
+                                    {% if item.menu.type == 'veg' %}
+                                        <div class="w-4 h-4 bg-green-500 rounded"></div>
+                                    {% else %}
+                                        <div class="w-4 h-4 bg-red-500 rounded"></div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium text-gray-900 text-sm truncate">{{ item.menu.name }}</p>
+                                    <p class="text-xs text-gray-500">Qty: {{ item.quantity }} × ₹{{ "%.2f"|format(item.price) }}</p>
+                                </div>
+                                <p class="text-sm font-semibold text-gray-900">₹{{ "%.2f"|format(item.price * item.quantity) }}</p>
+                            </div>
+                            {% endfor %}
+                            
+                            {% if order.order_items|length > 3 %}
+                            <div class="flex items-center justify-center p-3 bg-gray-100 rounded-lg">
+                                <p class="text-sm text-gray-600">+{{ order.order_items|length - 3 }} more item(s)</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Order Actions -->
+                        <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                            <div class="flex space-x-4">
+                                <a href="{{ url_for('order_history.order_detail', order_id=order.id) }}" 
+                                   class="text-orange-600 hover:text-orange-700 font-medium text-sm">
+                                    <i class="fas fa-eye mr-1"></i>View Details
+                                </a>
+                                
+                                {% if order.status == 'delivered' %}
+                                <button onclick="reorderItems({{ order.id }})" 
+                                        class="text-green-600 hover:text-green-700 font-medium text-sm">
+                                    <i class="fas fa-redo mr-1"></i>Reorder
+                                </button>
+                                {% endif %}
+                                
+                                {% if order.status in ['pending', 'confirmed'] %}
+                                <button onclick="cancelOrder({{ order.id }})" 
+                                        class="text-red-600 hover:text-red-700 font-medium text-sm">
+                                    <i class="fas fa-times mr-1"></i>Cancel Order
+                                </button>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="text-sm text-gray-500">
+                                <i class="fas fa-map-marker-alt mr-1"></i>
+                                {% if order.delivery_address %}
+                                    {{ order.delivery_address[:50] }}{% if order.delivery_address|length > 50 %}...{% endif %}
+                                {% else %}
+                                    Address not available
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if orders.pages > 1 %}
+        <div class="flex justify-center items-center space-x-2 mt-12">
+            {% if orders.has_prev %}
+                <a href="{{ url_for('order_history.order_history', page=orders.prev_num) }}" 
+                   class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            {% endif %}
+            
+            {% for page in orders.iter_pages() %}
+                {% if page %}
+                    {% if page != orders.page %}
+                        <a href="{{ url_for('order_history.order_history', page=page) }}" 
+                           class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200">
+                            {{ page }}
+                        </a>
+                    {% else %}
+                        <span class="px-4 py-2 bg-orange-500 text-white rounded-lg">{{ page }}</span>
+                    {% endif %}
+                {% else %}
+                    <span class="px-4 py-2">...</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if orders.has_next %}
+                <a href="{{ url_for('order_history.order_history', page=orders.next_num) }}" 
+                   class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-16">
+            <div class="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-8">
+                <i class="fas fa-receipt text-gray-400 text-4xl"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">No orders yet</h2>
+            <p class="text-xl text-gray-600 mb-8">Looks like you haven't placed any orders yet. Time to treat yourself!</p>
+            <a href="{{ url_for('restaurant.restaurants') }}" 
+               class="bg-orange-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-orange-600 transform hover:scale-105 transition duration-300 inline-block">
+                Start Ordering
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Reorder Modal -->
+<div id="reorder-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-redo text-orange-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Reorder Items</h3>
+                <p class="text-gray-600">Add all items from this order to your cart?</p>
+            </div>
+            
+            <div class="flex space-x-4">
+                <button onclick="closeReorderModal()" 
+                        class="flex-1 border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:border-orange-500 hover:text-orange-500 transition duration-200">
+                    Cancel
+                </button>
+                <button onclick="confirmReorder()" 
+                        class="flex-1 bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition duration-200">
+                    Add to Cart
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentOrderId = null;
+
+function reorderItems(orderId) {
+    currentOrderId = orderId;
+    document.getElementById('reorder-modal').classList.remove('hidden');
+}
+
+function closeReorderModal() {
+    document.getElementById('reorder-modal').classList.add('hidden');
+    currentOrderId = null;
+}
+
+function confirmReorder() {
+    if (!currentOrderId) return;
+    
+    // Here you would make an API call to add all items from the order to cart
+    // For now, we'll just show a success message and redirect
+    alert('Items added to cart successfully!');
+    window.location.href = '/cart';
+}
+
+function cancelOrder(orderId) {
+    if (confirm('Are you sure you want to cancel this order?')) {
+        // Make API call to cancel order
+        fetch(`/cancel_order/${orderId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Failed to cancel order');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to cancel order');
+        });
+    }
+}
+
+// Auto-refresh order status every 30 seconds for pending/confirmed/preparing orders
+setInterval(() => {
+    const activeOrders = document.querySelectorAll('[data-status="pending"], [data-status="confirmed"], [data-status="preparing"]');
+    if (activeOrders.length > 0) {
+        // In a real app, you'd make an API call to check for updates
+        // location.reload();
+    }
+}, 30000);
+</script>
+{% endblock %}
