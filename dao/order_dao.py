@@ -1,8 +1,6 @@
 from db import db
 from models.order import Order, OrderItem
 from models.restaurant import Restaurant
-from sqlalchemy.orm import joinedload
-
 
 class OrderDAO:
     def create_order(self, order):
@@ -24,37 +22,57 @@ class OrderDAO:
             db.session.rollback()
             print(f"Error creating order item: {e}")
             return None
+    
     def get_order_by_id(self, order_id):
-            return Order.query.options(
-        joinedload(Order.order_items).joinedload(OrderItem.menu),
-        joinedload(Order.restaurant)
-    ).filter_by(id=order_id).first()
-
+        return Order.query.get(order_id)
     
     def get_orders_by_user(self, user_id, page=1, per_page=10):
         try:
-            return Order.query.options(
-    joinedload(Order.order_items).joinedload(OrderItem.menu),
-    joinedload(Order.restaurant)
-).filter_by(user_id=user_id).order_by(Order.created_at.desc()).paginate(
-    page=page, per_page=per_page, error_out=False
-)
-
+            # Get orders with proper pagination
+            offset = (page - 1) * per_page
+            orders = Order.query.filter_by(user_id=user_id).order_by(Order.created_at.desc()).offset(offset).limit(per_page).all()
+            total = Order.query.filter_by(user_id=user_id).count()
             
+            print(f"Found {total} orders for user {user_id}")
+            print(f"Returning {len(orders)} orders for page {page}")
+            
+            # Create pagination object
+            class SimplePagination:
+                def __init__(self, items, total, page, per_page):
+                    self.items = items
+                    self.total = total
+                    self.page = page
+                    self.per_page = per_page
+                    self.pages = (total + per_page - 1) // per_page if total > 0 else 0
+                    self.has_prev = page > 1
+                    self.has_next = page < self.pages
+                    self.prev_num = page - 1 if self.has_prev else None
+                    self.next_num = page + 1 if self.has_next else None
+                
+                def iter_pages(self):
+                    for i in range(1, self.pages + 1):
+                        yield i
+            
+            return SimplePagination(orders, total, page, per_page)
         except Exception as e:
             print(f"Error fetching orders: {e}")
-            # Return empty pagination object
-            from flask_sqlalchemy.pagination import Pagination
-
-            class DummyPagination:
-                def __init__(self, items, page, per_page):
-                    self.items = items
-        self.page = page
-        self.per_page = per_page
-        self.total = 0
-        self.pages = 0
-        return DummyPagination([], page, per_page)
-
+            class EmptyPagination:
+                def __init__(self):
+                    self.items = []
+                    self.total = 0
+                    self.pages = 0
+                    self.page = page
+                    self.per_page = per_page
+                    self.has_prev = False
+                    self.has_next = False
+                    self.prev_num = None
+                    self.next_num = None
+                
+                def iter_pages(self):
+                    return []
+            
+            return EmptyPagination()
+    
     def get_orders_by_user_safe(self, user_id, page=1, per_page=10):
         """Safe method that handles missing columns gracefully"""
         try:
@@ -74,15 +92,42 @@ class OrderDAO:
                 orders = result.fetchall()
                 total = db.session.execute(text("SELECT COUNT(*) FROM orders WHERE user_id = :user_id"), {'user_id': user_id}).scalar()
                 
-                # Convert to pagination-like object
-                from flask_sqlalchemy import Pagination
-                return Pagination(None, page, per_page, total, orders)
+                # Create a simple pagination-like object
+                class SimplePagination:
+                    def __init__(self, items, total, page, per_page):
+                        self.items = items
+                        self.total = total
+                        self.page = page
+                        self.per_page = per_page
+                        self.pages = (total + per_page - 1) // per_page
+                        self.has_prev = page > 1
+                        self.has_next = page < self.pages
+                        self.prev_num = page - 1 if self.has_prev else None
+                        self.next_num = page + 1 if self.has_next else None
+                    
+                    def iter_pages(self):
+                        for i in range(1, self.pages + 1):
+                            yield i
+                
+                return SimplePagination(orders, total, page, per_page)
             except Exception as e2:
                 print(f"Fallback query also failed: {e2}")
-                from flask_sqlalchemy import Pagination
-                return Pagination(None, page, per_page, 0, [])
-            page=page, per_page=per_page, error_out=False
-        
+                class EmptyPagination:
+                    def __init__(self):
+                        self.items = []
+                        self.total = 0
+                        self.pages = 0
+                        self.page = page
+                        self.per_page = per_page
+                        self.has_prev = False
+                        self.has_next = False
+                        self.prev_num = None
+                        self.next_num = None
+                    
+                    def iter_pages(self):
+                        return []
+                
+                return EmptyPagination()
     
     def get_orders_by_restaurant(self, restaurant_id, page=1, per_page=10):
         return Order.query.filter_by(restaurant_id=restaurant_id).order_by(Order.created_at.desc()).paginate(

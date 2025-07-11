@@ -26,7 +26,8 @@
                     <i class="fas fa-check-circle text-green-600 text-2xl"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900">
-                    {{ orders.items | selectattr('status', 'equalto', 'delivered') | list | length }}
+                    {% set delivered_count = orders.items | selectattr('status', 'equalto', 'delivered') | list | length %}
+                    {{ delivered_count }}
                 </h3>
                 <p class="text-gray-600">Delivered</p>
             </div>
@@ -36,7 +37,8 @@
                     <i class="fas fa-clock text-orange-600 text-2xl"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900">
-                    {{ orders.items | selectattr('status', 'in', ['pending', 'confirmed', 'preparing']) | list | length }}
+                    {% set in_progress_count = orders.items | selectattr('status', 'in', ['pending', 'confirmed', 'preparing']) | list | length %}
+                    {{ in_progress_count }}
                 </h3>
                 <p class="text-gray-600">In Progress</p>
             </div>
@@ -46,7 +48,8 @@
                     <i class="fas fa-rupee-sign text-purple-600 text-2xl"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900">
-                    ₹{{ "%.0f"|format(orders.items | sum(attribute='total_amount')) }}
+                    {% set total_spent = orders.items | sum(attribute='total_amount') %}
+                    ₹{{ "%.0f"|format(total_spent) }}
                 </h3>
                 <p class="text-gray-600">Total Spent</p>
             </div>

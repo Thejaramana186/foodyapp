@@ -15,6 +15,7 @@ from controllers.checkout_controller import checkout_bp
 from controllers.order_history_controller import order_history_bp
 from controllers.logout_controller import logout_bp
 import os
+from db import db
 
 def create_app():
     app = Flask(__name__)

@@ -1,6 +1,7 @@
 from flask import Blueprint, request, render_template, redirect, url_for, session, flash
 from models.order import Order, OrderItem
 from models.cart import Cart
+from db import db
 from dao.cart_dao import CartDAO
 from dao.order_dao import OrderDAO
 from datetime import datetime
@@ -73,36 +74,33 @@ def place_order():
     # Create separate orders for each restaurant
     for restaurant_id, items in restaurants_orders.items():
         total_amount = sum(item.menu.price * item.quantity for item in items)
+        total_amount = total_amount * 1.05  # Add taxes
         
-        # Create order with backward compatibility
+        # Create order
+        order = Order(
+            user_id=user_id,
+            restaurant_id=restaurant_id,
+            total_amount=total_amount,
+            delivery_address=delivery_address,
+            phone=phone,
+            payment_method=payment_method,
+            booking_name=booking_name,
+            booking_email=booking_email,
+            delivery_date=delivery_date,
+            delivery_time=delivery_time,
+            special_instructions=special_instructions
+        )
+        
+        # Save order to database
         try:
-            # Try creating order with all new fields
-            order = Order(
-                user_id=user_id,
-                restaurant_id=restaurant_id,
-                total_amount=total_amount,
-                delivery_address=delivery_address,
-                phone=phone,
-                payment_method=payment_method,
-                booking_name=booking_name,
-                booking_email=booking_email,
-                delivery_date=delivery_date,
-                delivery_time=delivery_time,
-                special_instructions=special_instructions
-            )
+            db.session.add(order)
+            db.session.flush()  # Get the order ID
+            order_id = order.id
+            print(f"Created order with ID: {order_id}")
         except Exception as e:
-            print(f"Error creating order with new fields: {e}")
-            # Fallback to basic order creation
-            order = Order(
-                user_id=user_id,
-                restaurant_id=restaurant_id,
-                total_amount=total_amount,
-                delivery_address=delivery_address,
-                phone=phone,
-                payment_method=payment_method
-            )
-        
-        order_id = order_dao.create_order(order)
+            print(f"Error creating order: {e}")
+            db.session.rollback()
+            continue
         
         if order_id:
             order_ids.append(order_id)
@@ -114,7 +112,21 @@ def place_order():
                     quantity=item.quantity,
                     price=item.menu.price
                 )
-                order_dao.create_order_item(order_item)
+                try:
+                    db.session.add(order_item)
+                    print(f"Added order item: {item.menu.name} x {item.quantity}")
+                except Exception as e:
+                    print(f"Error creating order item: {e}")
+    
+    # Commit all changes
+    try:
+        db.session.commit()
+        print(f"Successfully saved {len(order_ids)} orders")
+    except Exception as e:
+        print(f"Error committing orders: {e}")
+        db.session.rollback()
+        flash('Failed to place order. Please try again.', 'error')
+        return redirect(url_for('checkout.checkout'))
     
     # Clear cart after successful order
     cart_dao.clear_cart(user_id)
